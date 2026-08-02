@@ -175,24 +175,120 @@ This cleanly converts big-endian header fields (magic numbers, image dimensions,
 
 ## Build & Run
 
-### Prerequisites
-Ensure the raw MNIST binary files are placed inside the `mnist/` directory at the project root.
+---
 
-### Build & Run V3 (Production Engine)
-Compile and run the optimized V3 engine directly from the root directory:
+### Step 1 — Get the MNIST Dataset
+
+The MNIST binary files are not included in the repository. Download and extract them before building.
+All commands below must be run from the **project root** so that files land in `mnist/`.
+
+#### macOS
 
 ```bash
-# 1. Compile
-gcc -Wall -O3 v3/main.c v3/mlp.c v3/file_handler.c v3/thread_handler.c -o v3/main -lm
+mkdir -p mnist && cd mnist
 
-# 2. Run
+curl -O https://storage.googleapis.com/cvdf-datasets/mnist/train-images-idx3-ubyte.gz
+curl -O https://storage.googleapis.com/cvdf-datasets/mnist/train-labels-idx1-ubyte.gz
+curl -O https://storage.googleapis.com/cvdf-datasets/mnist/t10k-images-idx3-ubyte.gz
+curl -O https://storage.googleapis.com/cvdf-datasets/mnist/t10k-labels-idx1-ubyte.gz
+
+gunzip *.gz
+cd ..
+```
+
+#### Linux / WSL (Ubuntu, Debian, etc.)
+
+```bash
+mkdir -p mnist && cd mnist
+
+wget https://storage.googleapis.com/cvdf-datasets/mnist/train-images-idx3-ubyte.gz
+wget https://storage.googleapis.com/cvdf-datasets/mnist/train-labels-idx1-ubyte.gz
+wget https://storage.googleapis.com/cvdf-datasets/mnist/t10k-images-idx3-ubyte.gz
+wget https://storage.googleapis.com/cvdf-datasets/mnist/t10k-labels-idx1-ubyte.gz
+
+gunzip *.gz
+cd ..
+```
+
+> **WSL users:** Clone or copy the project to a native Linux path (e.g. `~/nn_c`) before downloading.
+> Do **not** work from `/mnt/c/` — files synced via OneDrive appear as cloud-only placeholders (276 bytes)
+> and will cause an immediate segfault. Always verify file sizes with `ls -lh mnist/` before running.
+
+#### Windows (MSYS2 / MinGW-w64)
+
+Open an **MSYS2 MINGW64** terminal:
+
+```bash
+mkdir -p mnist && cd mnist
+
+curl -O https://storage.googleapis.com/cvdf-datasets/mnist/train-images-idx3-ubyte.gz
+curl -O https://storage.googleapis.com/cvdf-datasets/mnist/train-labels-idx1-ubyte.gz
+curl -O https://storage.googleapis.com/cvdf-datasets/mnist/t10k-images-idx3-ubyte.gz
+curl -O https://storage.googleapis.com/cvdf-datasets/mnist/t10k-labels-idx1-ubyte.gz
+
+gunzip *.gz
+cd ..
+```
+
+#### Verify (all platforms)
+
+After extraction, confirm the file sizes look correct:
+
+```
+~47 MB   mnist/train-images-idx3-ubyte
+~60 KB   mnist/train-labels-idx1-ubyte
+~7.8 MB  mnist/t10k-images-idx3-ubyte
+~10 KB   mnist/t10k-labels-idx1-ubyte
+```
+
+---
+
+### Step 2 — Build & Run
+
+#### macOS / Linux / WSL
+
+```bash
+gcc -Wall -O3 v3/main.c v3/mlp.c v3/file_handler.c v3/thread_handler.c -o v3/main -lm -lpthread
+
 ./v3/main
 ```
 
-At runtime, input your desired network parameters:
-* **Hidden Layers**: `2`
-* **Nodes in Hidden Layer 0**: `16`
-* **Nodes in Hidden Layer 1**: `16`
-* **Learning Rate**: `0.1`
-* **Batch Size**: `32`
-* **Epochs**: `5`
+#### Windows — WSL (recommended)
+
+WSL gives you a native Linux environment on Windows with full pthreads support. Install it once:
+
+```powershell
+# In PowerShell (run as Administrator)
+wsl --install
+```
+
+Then inside WSL, follow the Linux instructions above.
+
+#### Windows — MSYS2 / MinGW-w64 (native `.exe`, no WSL required)
+
+Standard MinGW does not ship pthreads. Use **MSYS2** which bundles `winpthreads`:
+
+```bash
+# Install MSYS2 from https://www.msys2.org, then in an MSYS2 MINGW64 terminal:
+pacman -S mingw-w64-x86_64-gcc
+
+gcc -Wall -O3 v3/main.c v3/mlp.c v3/file_handler.c v3/thread_handler.c -o v3/main.exe -lm -lpthread
+
+./v3/main.exe
+```
+
+> **Note:** Compiling with plain MinGW (not MSYS2) will fail with `pthread.h: No such file or directory`.
+> MSYS2's MinGW-w64 toolchain links `winpthreads` automatically via `-lpthread`.
+
+---
+
+### Step 3 — Enter Parameters at Runtime
+
+```
+Enter the number of hidden layers you want in your MLP for MNIST dataset: 2
+Enter number of nodes in hidden layer 0: 16
+Enter number of nodes in hidden layer 1: 16
+Enter desired learning rate: 0.1
+Enter desired batch size (preferred like 2,4,16,32...): 32
+Enter desired epochs: 5
+```
