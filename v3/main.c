@@ -237,6 +237,7 @@ int main()
     }
     accuracy/=test_images_file.images_num;
     printf("%f accuracy on %d epochs, %d batch size, %f learning rate\n",accuracy*100,epochs,batch_size,learning_rate);
+    //save_network(network,"model.bin");
     free(indices);
     free(train_images_pixels);
     free(train_labels);

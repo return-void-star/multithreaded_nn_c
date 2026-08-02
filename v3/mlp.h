@@ -13,3 +13,4 @@ typedef struct mlp
 mlp* create_mlp(int* arr, int layers);
 void initialise_network(mlp* temp);
 void clear_network(mlp* temp);
+int save_network(mlp* net, const char* path);

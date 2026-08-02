@@ -2,6 +2,7 @@
 #include "mlp.h"
 #include <math.h>
 #include <string.h>
+#include <stdio.h>
 #define IMAGE_SIZE 784
 mlp* create_mlp(int* arr, int layers)
 {
@@ -83,4 +84,20 @@ void clear_network(mlp* temp)
     free(temp->w_indices);
     free(temp);
     return;
+}
+int save_network(mlp* net, const char* path)
+{
+    FILE* f=fopen(path,"wb");
+    if(!f)
+    {
+        return 0;
+    }
+    fwrite(&net->size,sizeof(int),1,f);
+    fwrite(&net->total_weights,sizeof(int),1,f);
+    fwrite(&net->total_biases,sizeof(int),1,f);
+    fwrite(net->summary,sizeof(int),net->size,f);
+    fwrite(net->weights,sizeof(double),net->total_weights,f);
+    fwrite(net->biases,sizeof(double),net->total_biases,f);
+    fclose(f);
+    return 1;
 }
